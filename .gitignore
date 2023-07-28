@@ -1,0 +1,26 @@
+# ignore license file
+*.lic
+
+#ignore txt file
+*.txt
+
+#ignore json file
+*.json
+
+# ignore terraform tfvars file
+*.tfvars
+
+# ignore swp file
+*.swp
+
+# ignore tmp file
+*~
+
+# ignore terraform hcl file
+*.hcl
+
+# ignore terraform state file
+terraform.tfstate*
+
+# ignore the pem file
+*.pem
