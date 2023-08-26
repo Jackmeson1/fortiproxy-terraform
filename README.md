@@ -3,6 +3,7 @@
 This project includes a set of terraform scripts for getting started with different cloud-providers with Fortinet.
 
 * [AWS](https://github.com/fortinet/fortiproxy-terraform/tree/main/aws)
+* [Azure](https://github.com/fortinet/fortiproxy-terraform/tree/main/azure)
 
 ## Support
 Fortinet-provided scripts in this and other GitHub projects do not fall under the regular Fortinet technical support scope and are not supported by FortiCare Support Services.
