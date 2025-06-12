@@ -22,5 +22,51 @@
 # ignore terraform state file
 terraform.tfstate*
 
+# Terraform directories and files (UPDATED)
+.terraform/
+.terraform.lock.hcl
+*.tfplan
+*.tfplan.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
+
 # ignore the pem file
 *.pem
+
+# Large installation files
+*.exe
+*.msi
+*.zip
+*.tar.gz
+*.iso
+*.dmg
+*.pkg
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Log files
+*.log
+
+# Backup files
+*.backup
+*.bak

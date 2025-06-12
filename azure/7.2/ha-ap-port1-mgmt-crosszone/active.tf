@@ -11,50 +11,33 @@ resource "azurerm_image" "custom" {
   }
 }
 
-resource "azurerm_virtual_machine" "customactivefpxvm" {
+resource "azurerm_linux_virtual_machine" "customactivefpxvm" {
   count                        = var.custom ? 1 : 0
   name                         = "FPX-A"
   location                     = var.location
   resource_group_name          = azurerm_resource_group.myterraformgroup.name
   network_interface_ids        = [azurerm_network_interface.activeport1.id, azurerm_network_interface.activeport2.id, azurerm_network_interface.activeport3.id, azurerm_network_interface.activeport4.id]
-  primary_network_interface_id = azurerm_network_interface.activeport1.id
-  vm_size                      = var.size
-  zones                        = [var.zone1]
+  size                         = var.size
+  zone                         = var.zone1
+  admin_username               = var.adminusername
+  admin_password               = var.adminpassword
+  disable_password_authentication = false
+  custom_data                     = base64encode(local.activeFortiProxy)
 
-  storage_image_reference {
-    id = var.custom ? element(azurerm_image.custom.*.id, 0) : null
+  source_image_id = var.custom ? element(azurerm_image.custom.*.id, 0) : null
+
+  os_disk {
+    name                 = "osDisk"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  storage_os_disk {
-    name              = "osDisk"
-    caching           = "ReadWrite"
-    managed_disk_type = "Standard_LRS"
-    create_option     = "FromImage"
-  }
-
-  # Log data disks
-  storage_data_disk {
-    name              = "activedatadisk"
-    managed_disk_type = "Standard_LRS"
-    create_option     = "Empty"
-    lun               = 0
-    disk_size_gb      = "30"
-  }
-
-  os_profile {
-    computer_name  = "customactivefpx"
-    admin_username = var.adminusername
-    admin_password = var.adminpassword
-    custom_data    = data.template_file.activeFortiProxy.rendered
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  additional_capabilities {
+    ultra_ssd_enabled = false
   }
 
   boot_diagnostics {
-    enabled     = true
-    storage_uri = azurerm_storage_account.fpxstorageaccount.primary_blob_endpoint
+    storage_account_uri = azurerm_storage_account.fpxstorageaccount.primary_blob_endpoint
   }
 
   tags = {
@@ -62,25 +45,48 @@ resource "azurerm_virtual_machine" "customactivefpxvm" {
   }
 }
 
+resource "azurerm_managed_disk" "customactivedatadisk" {
+  count                = var.custom ? 1 : 0
+  name                 = "customactivedatadisk"
+  location             = var.location
+  resource_group_name  = azurerm_resource_group.myterraformgroup.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 30
+
+  tags = {
+    environment = "Terraform Demo"
+  }
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "customactivedatadisk" {
+  count              = var.custom ? 1 : 0
+  managed_disk_id    = azurerm_managed_disk.customactivedatadisk[0].id
+  virtual_machine_id = azurerm_linux_virtual_machine.customactivefpxvm[0].id
+  lun                = "0"
+  caching            = "ReadWrite"
+}
 
 
-resource "azurerm_virtual_machine" "activefpxvm" {
+
+resource "azurerm_linux_virtual_machine" "activefpxvm" {
   count                        = var.custom ? 0 : 1
-  # name                         = "activefpx"
   name                         = var.active_name
   location                     = var.location
   resource_group_name          = azurerm_resource_group.myterraformgroup.name
   network_interface_ids        = [azurerm_network_interface.activeport1.id, azurerm_network_interface.activeport2.id, azurerm_network_interface.activeport3.id, azurerm_network_interface.activeport4.id]
-  primary_network_interface_id = azurerm_network_interface.activeport1.id
-  vm_size                      = var.size
-  zones                        = [var.zone1]
+  size                         = var.size
+  zone                         = var.zone1
+  admin_username               = var.adminusername
+  admin_password               = var.adminpassword
+  disable_password_authentication = false
+  custom_data                     = base64encode(local.activeFortiProxy)
 
-  storage_image_reference {
-    publisher = var.custom ? null : var.publisher
-    offer     = var.custom ? null : var.fpxoffer
+  source_image_reference {
+    publisher = var.publisher
+    offer     = var.fpxoffer
     sku       = var.license_type == "byol" ? var.fpxsku["byol"] : var.fpxsku["payg"]
-    version   = var.custom ? null : var.fpxversion
-    id        = var.custom ? element(azurerm_image.custom.*.id, 0) : null
+    version   = var.fpxversion
   }
 
   plan {
@@ -89,37 +95,18 @@ resource "azurerm_virtual_machine" "activefpxvm" {
     product   = var.fpxoffer
   }
 
-
-  storage_os_disk {
-    name              = "osDisk"
-    caching           = "ReadWrite"
-    managed_disk_type = "Standard_LRS"
-    create_option     = "FromImage"
+  os_disk {
+    name                 = "activeosDisk"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  # Log data disks
-  storage_data_disk {
-    name              = "activedatadisk"
-    managed_disk_type = "Standard_LRS"
-    create_option     = "Empty"
-    lun               = 0
-    disk_size_gb      = "30"
-  }
-
-  os_profile {
-    computer_name  = "activefpx"
-    admin_username = var.adminusername
-    admin_password = var.adminpassword
-    custom_data    = data.template_file.activeFortiProxy.rendered
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  additional_capabilities {
+    ultra_ssd_enabled = false
   }
 
   boot_diagnostics {
-    enabled     = true
-    storage_uri = azurerm_storage_account.fpxstorageaccount.primary_blob_endpoint
+    storage_account_uri = azurerm_storage_account.fpxstorageaccount.primary_blob_endpoint
   }
 
   tags = {
@@ -127,9 +114,31 @@ resource "azurerm_virtual_machine" "activefpxvm" {
   }
 }
 
-data "template_file" "activeFortiProxy" {
-  template = file(var.bootstrap-active)
-  vars = {
+resource "azurerm_managed_disk" "activedatadisk" {
+  count                = var.custom ? 0 : 1
+  name                 = "activedatadisk"
+  location             = var.location
+  resource_group_name  = azurerm_resource_group.myterraformgroup.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 30
+  zone                 = var.zone1
+
+  tags = {
+    environment = "Terraform Demo"
+  }
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "activedatadisk" {
+  count              = var.custom ? 0 : 1
+  managed_disk_id    = azurerm_managed_disk.activedatadisk[0].id
+  virtual_machine_id = azurerm_linux_virtual_machine.activefpxvm[0].id
+  lun                = "0"
+  caching            = "ReadWrite"
+}
+
+locals {
+  activeFortiProxy = templatefile(var.bootstrap-active, {
     type            = var.license_type
     license_file    = var.license
     port1_ip        = var.activeport1
@@ -151,5 +160,5 @@ data "template_file" "activeFortiProxy" {
     rsg             = azurerm_resource_group.myterraformgroup.name
     clusterip       = azurerm_public_ip.ClusterPublicIP.name
     routename       = azurerm_route_table.internal.name
-  }
+  })
 }

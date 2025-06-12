@@ -5,7 +5,7 @@ resource "azurerm_route_table" "internal" {
 }
 
 resource "azurerm_route" "default" {
-  depends_on             = [azurerm_virtual_machine.passivefpxvm]
+  depends_on             = [azurerm_linux_virtual_machine.passivefpxvm]
   name                   = "default"
   resource_group_name    = azurerm_resource_group.myterraformgroup.name
   route_table_name       = azurerm_route_table.internal.name

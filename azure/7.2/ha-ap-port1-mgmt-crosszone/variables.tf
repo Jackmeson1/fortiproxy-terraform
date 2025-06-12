@@ -94,7 +94,7 @@ variable "passive_name" {
 // FPX version
 variable "fpxversion" {
   type    = string
-  default = "7.2.6"
+  default = "7.2.13"
 }
 
 variable "adminusername" {

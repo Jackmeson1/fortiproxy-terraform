@@ -1,48 +1,31 @@
-resource "azurerm_virtual_machine" "custompassivefpxvm" {
-  depends_on                   = [azurerm_virtual_machine.customactivefpxvm]
-  count                        = var.custom ? 1 : 0
-  name                         = "FPX-B"
-  location                     = var.location
-  resource_group_name          = azurerm_resource_group.myterraformgroup.name
-  network_interface_ids        = [azurerm_network_interface.passiveport1.id, azurerm_network_interface.passiveport2.id, azurerm_network_interface.passiveport3.id, azurerm_network_interface.passiveport4.id]
-  primary_network_interface_id = azurerm_network_interface.passiveport1.id
-  vm_size                      = var.size
-  zones                        = [var.zone2]
+resource "azurerm_linux_virtual_machine" "custompassivefpxvm" {
+  depends_on                      = [azurerm_linux_virtual_machine.customactivefpxvm]
+  count                           = var.custom ? 1 : 0
+  name                            = "FPX-B"
+  location                        = var.location
+  resource_group_name             = azurerm_resource_group.myterraformgroup.name
+  network_interface_ids           = [azurerm_network_interface.passiveport1.id, azurerm_network_interface.passiveport2.id, azurerm_network_interface.passiveport3.id, azurerm_network_interface.passiveport4.id]
+  size                            = var.size
+  zone                            = var.zone2
+  admin_username                  = var.adminusername
+  admin_password                  = var.adminpassword
+  disable_password_authentication = false
+  custom_data                     = base64encode(local.passiveFortiProxy)
 
-  storage_image_reference {
-    id = var.custom ? element(azurerm_image.custom.*.id, 0) : null
+  source_image_id = var.custom ? element(azurerm_image.custom.*.id, 0) : null
+
+  os_disk {
+    name                 = "passiveosDisk"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  storage_os_disk {
-    name              = "passiveosDisk"
-    caching           = "ReadWrite"
-    managed_disk_type = "Standard_LRS"
-    create_option     = "FromImage"
-  }
-
-  # Log data disks
-  storage_data_disk {
-    name              = "passivedatadisk"
-    managed_disk_type = "Standard_LRS"
-    create_option     = "Empty"
-    lun               = 0
-    disk_size_gb      = "30"
-  }
-
-  os_profile {
-    computer_name  = "custompassivefpx"
-    admin_username = var.adminusername
-    admin_password = var.adminpassword
-    custom_data    = data.template_file.passiveFortiProxy.rendered
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  additional_capabilities {
+    ultra_ssd_enabled = false
   }
 
   boot_diagnostics {
-    enabled     = true
-    storage_uri = azurerm_storage_account.fpxstorageaccount.primary_blob_endpoint
+    storage_account_uri = azurerm_storage_account.fpxstorageaccount.primary_blob_endpoint
   }
 
   tags = {
@@ -50,24 +33,47 @@ resource "azurerm_virtual_machine" "custompassivefpxvm" {
   }
 }
 
+resource "azurerm_managed_disk" "custompassivedatadisk" {
+  count                = var.custom ? 1 : 0
+  name                 = "custompassivedatadisk"
+  location             = var.location
+  resource_group_name  = azurerm_resource_group.myterraformgroup.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 30
 
-resource "azurerm_virtual_machine" "passivefpxvm" {
-  depends_on                   = [azurerm_virtual_machine.activefpxvm]
-  count                        = var.custom ? 0 : 1
-  name                         = var.passive_name
-  location                     = var.location
-  resource_group_name          = azurerm_resource_group.myterraformgroup.name
-  network_interface_ids        = [azurerm_network_interface.passiveport1.id, azurerm_network_interface.passiveport2.id, azurerm_network_interface.passiveport3.id, azurerm_network_interface.passiveport4.id]
-  primary_network_interface_id = azurerm_network_interface.passiveport1.id
-  vm_size                      = var.size
-  zones                        = [var.zone2]
+  tags = {
+    environment = "Terraform Demo"
+  }
+}
 
-  storage_image_reference {
-    publisher = var.custom ? null : var.publisher
-    offer     = var.custom ? null : var.fpxoffer
+resource "azurerm_virtual_machine_data_disk_attachment" "custompassivedatadisk" {
+  count              = var.custom ? 1 : 0
+  managed_disk_id    = azurerm_managed_disk.custompassivedatadisk[0].id
+  virtual_machine_id = azurerm_linux_virtual_machine.custompassivefpxvm[0].id
+  lun                = "0"
+  caching            = "ReadWrite"
+}
+
+resource "azurerm_linux_virtual_machine" "passivefpxvm" {
+  depends_on                      = [azurerm_linux_virtual_machine.activefpxvm]
+  count                           = var.custom ? 0 : 1
+  name                            = var.passive_name
+  location                        = var.location
+  resource_group_name             = azurerm_resource_group.myterraformgroup.name
+  network_interface_ids           = [azurerm_network_interface.passiveport1.id, azurerm_network_interface.passiveport2.id, azurerm_network_interface.passiveport3.id, azurerm_network_interface.passiveport4.id]
+  size                            = var.size
+  zone                            = var.zone2
+  admin_username                  = var.adminusername
+  admin_password                  = var.adminpassword
+  disable_password_authentication = false
+  custom_data                     = base64encode(local.passiveFortiProxy)
+
+  source_image_reference {
+    publisher = var.publisher
+    offer     = var.fpxoffer
     sku       = var.license_type == "byol" ? var.fpxsku["byol"] : var.fpxsku["payg"]
-    version   = var.custom ? null : var.fpxversion
-    id        = var.custom ? element(azurerm_image.custom.*.id, 0) : null
+    version   = var.fpxversion
   }
 
   plan {
@@ -76,36 +82,18 @@ resource "azurerm_virtual_machine" "passivefpxvm" {
     product   = var.fpxoffer
   }
 
-  storage_os_disk {
-    name              = "passiveosDisk"
-    caching           = "ReadWrite"
-    managed_disk_type = "Standard_LRS"
-    create_option     = "FromImage"
+  os_disk {
+    name                 = "passiveosDisk2"
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  # Log data disks
-  storage_data_disk {
-    name              = "passivedatadisk"
-    managed_disk_type = "Standard_LRS"
-    create_option     = "Empty"
-    lun               = 0
-    disk_size_gb      = "30"
-  }
-
-  os_profile {
-    computer_name  = "passivefpx"
-    admin_username = var.adminusername
-    admin_password = var.adminpassword
-    custom_data    = data.template_file.passiveFortiProxy.rendered
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  additional_capabilities {
+    ultra_ssd_enabled = false
   }
 
   boot_diagnostics {
-    enabled     = true
-    storage_uri = azurerm_storage_account.fpxstorageaccount.primary_blob_endpoint
+    storage_account_uri = azurerm_storage_account.fpxstorageaccount.primary_blob_endpoint
   }
 
   tags = {
@@ -113,10 +101,31 @@ resource "azurerm_virtual_machine" "passivefpxvm" {
   }
 }
 
-data "template_file" "passiveFortiProxy" {
-  template = file(var.bootstrap-passive)
+resource "azurerm_managed_disk" "passivedatadisk" {
+  count                = var.custom ? 0 : 1
+  name                 = "passivedatadisk"
+  location             = var.location
+  resource_group_name  = azurerm_resource_group.myterraformgroup.name
+  storage_account_type = "Standard_LRS"
+  create_option        = "Empty"
+  disk_size_gb         = 30
+  zone                 = var.zone2
 
-  vars = {
+  tags = {
+    environment = "Terraform Demo"
+  }
+}
+
+resource "azurerm_virtual_machine_data_disk_attachment" "passivedatadisk" {
+  count              = var.custom ? 0 : 1
+  managed_disk_id    = azurerm_managed_disk.passivedatadisk[0].id
+  virtual_machine_id = azurerm_linux_virtual_machine.passivefpxvm[0].id
+  lun                = "0"
+  caching            = "ReadWrite"
+}
+
+locals {
+  passiveFortiProxy = templatefile(var.bootstrap-passive, {
     type            = var.license_type
     license_file    = var.license2
     port1_ip        = var.passiveport1
@@ -138,5 +147,5 @@ data "template_file" "passiveFortiProxy" {
     rsg             = azurerm_resource_group.myterraformgroup.name
     clusterip       = azurerm_public_ip.ClusterPublicIP.name
     routename       = azurerm_route_table.internal.name
-  }
+  })
 }
