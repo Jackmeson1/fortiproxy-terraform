@@ -1,0 +1,4 @@
+# FortiProxy BYOL License
+# Replace with your actual license content
+# This is a placeholder for testing
+FORTINET-LICENSE-PLACEHOLDER
