@@ -1,0 +1,39 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfplan
+
+# Environment files
+.env
+.env.local
+setup-env-local.sh
+
+# SSH keys
+*.pem
+*.key
+id_rsa*
+ad_client_key*
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Backup files
+*.backup
+*.bak
+
+# Sensitive files
+*-credentials.txt
+*-secrets.txt

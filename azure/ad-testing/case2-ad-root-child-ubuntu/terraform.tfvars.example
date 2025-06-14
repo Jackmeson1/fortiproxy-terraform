@@ -1,0 +1,130 @@
+# =============================================================================
+# CASE 2: Root-Child Domain + Ubuntu - Configuration Example
+# =============================================================================
+
+# Azure Authentication (Required)
+subscription_id = "your-azure-subscription-id"
+client_id       = "your-service-principal-client-id"
+client_secret   = "your-service-principal-client-secret"
+tenant_id       = "your-azure-tenant-id"
+
+# =============================================================================
+# DEPLOYMENT CONFIGURATION
+# =============================================================================
+
+# Azure region for deployment
+location = "eastus"
+
+# Resource group name (will be created)
+resource_group_name = "case2-root-child-rg"
+
+# =============================================================================
+# MULTI-DOMAIN CONFIGURATION
+# =============================================================================
+
+# Root domain (forest root)
+root_domain_name = "corp.local"
+
+# Child domain (will be subdomain of root)
+child_domain_name = "dev.corp.local"
+
+# Active Directory functional levels
+forest_functional_level = "WinThreshold"  # Windows Server 2016/2019
+domain_functional_level = "WinThreshold"  # Windows Server 2016/2019
+
+# =============================================================================
+# WINDOWS DOMAIN CONTROLLERS
+# =============================================================================
+
+# Administrator credentials for both Windows DCs
+admin_username = "azureuser"
+admin_password = "VeryComplexPassword123!"  # CHANGE THIS TO A SECURE PASSWORD
+
+# VM size for Domain Controllers
+# Note: Parent-child setup requires more resources than simple AD
+# Minimum: Standard_B4ms (4 vCPUs, 16GB RAM)
+# Recommended: Standard_D4s_v3 (4 vCPUs, 16GB RAM, better networking)
+vm_size = "Standard_B4ms"
+
+# =============================================================================
+# UBUNTU CLIENT CONFIGURATION
+# =============================================================================
+
+# Ubuntu client VM size
+# Minimum: Standard_B2s (2 vCPUs, 4GB RAM)
+# Recommended: Standard_B4ms (4 vCPUs, 16GB RAM) for complex testing
+client_vm_size = "Standard_B2s"
+
+# Ubuntu admin username
+client_admin_username = "ubuntu"
+
+# SSH public key for Ubuntu client access
+# Generate with: ssh-keygen -t rsa -b 4096 -f ~/.ssh/ad_client_key
+# Then use: cat ~/.ssh/ad_client_key.pub
+client_ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDExample... your-ssh-public-key-here"
+
+# =============================================================================
+# SECURITY CONFIGURATION
+# =============================================================================
+
+# Source IP address range for admin access (RDP to DCs, SSH to client)
+# SECURITY WARNING: "*" allows access from anywhere - restrict to your IP!
+# Example: "203.0.113.45/32" for a specific IP
+# Example: "203.0.113.0/24" for a subnet
+admin_source_ip = "*"  # CHANGE THIS FOR SECURITY
+
+# =============================================================================
+# OPTIONAL CONFIGURATION
+# =============================================================================
+
+# Enable boot diagnostics for troubleshooting
+enable_diagnostics = true
+
+# Enable auto-shutdown for cost management (testing environments)
+enable_auto_shutdown = false
+auto_shutdown_time = "1900"  # 7:00 PM in 24h format
+
+# =============================================================================
+# DEPLOYMENT NOTES
+# =============================================================================
+
+# 1. SECURITY: Always change admin_password and restrict admin_source_ip
+# 2. SSH KEY: Generate your SSH key pair before deployment
+# 3. DOMAINS: Use .local domains for internal testing environments
+# 4. RESOURCES: Parent-child domains require more CPU/RAM than simple AD
+# 5. TIMING: Full deployment takes 20-30 minutes due to domain trust setup
+# 6. COST: This deployment uses more resources than Case 1
+
+# Multi-Domain Architecture:
+# ├── Root Domain: corp.local (10.0.1.4)
+# │   ├── Enterprise Admins
+# │   ├── Corporate Users
+# │   └── Forest-wide Groups
+# └── Child Domain: dev.corp.local (10.0.2.4)
+#     ├── Development Users
+#     ├── QA Team
+#     └── Dev-specific Groups
+
+# Trust Relationship: Automatic two-way transitive trust (parent-child)
+# Authentication: Cross-domain authentication supported via trust
+# Global Catalog: Available on root DC for forest-wide searches
+
+# Estimated monthly cost (eastus region):
+# - Root DC (Standard_B4ms): ~$120/month
+# - Child DC (Standard_B4ms): ~$120/month  
+# - Ubuntu Client (Standard_B2s): ~$30/month
+# - Networking & Storage: ~$15/month
+# - Total: ~$285/month (8760 hours)
+
+# Cost optimization for testing:
+# - Use auto_shutdown for non-production testing
+# - Consider smaller VM sizes for short-term testing
+# - Monitor usage and destroy when not needed
+
+# Test scenarios this deployment enables:
+# 1. Cross-domain user authentication
+# 2. Forest-wide group membership queries
+# 3. Global Catalog searches across domains
+# 4. Parent-child trust relationship validation
+# 5. Multi-domain FortiProxy LDAP integration
+# 6. Enterprise vs domain-specific access control testing

@@ -1,0 +1,95 @@
+# =============================================================================
+# CASE 1: Simple AD + Ubuntu - Configuration Example
+# =============================================================================
+
+# Azure Authentication (Required)
+subscription_id = "your-azure-subscription-id"
+client_id       = "your-service-principal-client-id"
+client_secret   = "your-service-principal-client-secret"
+tenant_id       = "your-azure-tenant-id"
+
+# =============================================================================
+# DEPLOYMENT CONFIGURATION
+# =============================================================================
+
+# Azure region for deployment
+location = "eastus"
+
+# Resource group name (will be created)
+resource_group_name = "case1-simple-ad-rg"
+
+# =============================================================================
+# DOMAIN CONFIGURATION
+# =============================================================================
+
+# Active Directory domain name
+# Note: Use a .local domain for internal testing
+domain_name = "simple.local"
+
+# =============================================================================
+# WINDOWS DOMAIN CONTROLLER
+# =============================================================================
+
+# Administrator credentials for Windows DC
+admin_username = "azureuser"
+admin_password = "ComplexPassword123!"  # CHANGE THIS TO A SECURE PASSWORD
+
+# VM size for Domain Controller
+# Minimum: Standard_B2ms (2 vCPUs, 8GB RAM)
+# Recommended: Standard_B4ms (4 vCPUs, 16GB RAM)
+vm_size = "Standard_B2ms"
+
+# =============================================================================
+# UBUNTU CLIENT CONFIGURATION
+# =============================================================================
+
+# Ubuntu client VM size
+# Minimum: Standard_B1s (1 vCPU, 1GB RAM)
+# Recommended: Standard_B2s (2 vCPUs, 4GB RAM)
+client_vm_size = "Standard_B2s"
+
+# Ubuntu admin username
+client_admin_username = "ubuntu"
+
+# SSH public key for Ubuntu client access
+# Generate with: ssh-keygen -t rsa -b 4096 -f ~/.ssh/ad_client_key
+# Then use: cat ~/.ssh/ad_client_key.pub
+client_ssh_public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDExample... your-ssh-public-key-here"
+
+# =============================================================================
+# SECURITY CONFIGURATION
+# =============================================================================
+
+# Source IP address range for admin access (RDP to DC, SSH to client)
+# SECURITY WARNING: "*" allows access from anywhere - restrict to your IP!
+# Example: "203.0.113.45/32" for a specific IP
+# Example: "203.0.113.0/24" for a subnet
+admin_source_ip = "*"  # CHANGE THIS FOR SECURITY
+
+# =============================================================================
+# OPTIONAL CONFIGURATION
+# =============================================================================
+
+# Enable boot diagnostics for troubleshooting
+enable_diagnostics = true
+
+# Enable auto-shutdown for cost management (testing environments)
+enable_auto_shutdown = false
+auto_shutdown_time = "1900"  # 7:00 PM in 24h format
+
+# =============================================================================
+# DEPLOYMENT NOTES
+# =============================================================================
+
+# 1. SECURITY: Always change admin_password and restrict admin_source_ip
+# 2. SSH KEY: Generate your SSH key pair before deployment
+# 3. DOMAIN: Use .local domains for internal testing environments
+# 4. COST: Enable auto_shutdown for non-production environments
+# 5. SIZE: Adjust VM sizes based on your testing requirements
+
+# Estimated monthly cost (eastus region):
+# - Standard_B2ms (DC): ~$60/month
+# - Standard_B2s (Client): ~$30/month
+# - Total: ~$90/month (8760 hours)
+
+# Test account deployment cost: Minimal for short-term testing

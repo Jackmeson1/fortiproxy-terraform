@@ -1,0 +1,29 @@
+# Azure Authentication
+subscription_id = "your-subscription-id"
+client_id       = "your-client-id"
+client_secret   = "your-client-secret"
+tenant_id       = "your-tenant-id"
+
+# Resource Configuration
+location            = "eastus"
+resource_group_name = "ADTestRG"
+
+# Windows DC Configuration
+admin_username = "azureuser"
+admin_password = "P@ssw0rd1234!"  # Change this to a secure password
+domain_name    = "example.com"
+vm_size        = "Standard_B2ms"
+
+# Security Configuration
+# IMPORTANT: Change this to your actual public IP for security
+# Example: "203.0.113.45/32"
+admin_source_ip = "*"  # WARNING: This allows access from anywhere
+
+# Ubuntu Client Configuration
+client_vm_size        = "Standard_B2s"
+client_admin_username = "ubuntu"
+
+# Generate SSH key pair:
+# ssh-keygen -t rsa -b 4096 -f ~/.ssh/ad_client_key
+# Then use: cat ~/.ssh/ad_client_key.pub
+client_ssh_public_key = "ssh-rsa AAAAB3NzaC1... your-ssh-public-key"
