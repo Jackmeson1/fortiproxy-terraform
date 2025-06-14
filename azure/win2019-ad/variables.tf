@@ -1,7 +1,22 @@
-variable "subscription_id" {}
-variable "client_id" {}
-variable "client_secret" {}
-variable "tenant_id" {}
+variable "subscription_id" {
+  type      = string
+  sensitive = true
+}
+
+variable "client_id" {
+  type      = string
+  sensitive = true
+}
+
+variable "client_secret" {
+  type      = string
+  sensitive = true
+}
+
+variable "tenant_id" {
+  type      = string
+  sensitive = true
+}
 
 variable "location" {
   type    = string
@@ -37,12 +52,40 @@ variable "domain_name" {
 variable "vm_size" {
   type        = string
   default     = "Standard_B2ms"
-  description = "Size of the VM"
+  description = "Size of the Windows DC VM"
   validation {
     condition = contains([
       "Standard_B2ms", "Standard_B2s", "Standard_B4ms", 
       "Standard_D2s_v3", "Standard_D4s_v3", "Standard_DS2_v2"
     ], var.vm_size)
     error_message = "VM size must be one of the supported sizes for Windows Server."
+  }
+}
+
+# New variables for enhanced deployment
+variable "admin_source_ip" {
+  type        = string
+  description = "Source IP address for admin access (RDP/SSH). Use 'your-public-ip/32' format."
+  default     = "*"  # Change this to your actual IP for security
+}
+
+variable "client_vm_size" {
+  type        = string
+  default     = "Standard_B2s"
+  description = "Size of the Ubuntu client VM"
+}
+
+variable "client_admin_username" {
+  type        = string
+  default     = "ubuntu"
+  description = "Admin username for Ubuntu client"
+}
+
+variable "client_ssh_public_key" {
+  type        = string
+  description = "SSH public key for Ubuntu client access"
+  validation {
+    condition     = length(var.client_ssh_public_key) > 50
+    error_message = "SSH public key must be provided and appear to be valid."
   }
 }

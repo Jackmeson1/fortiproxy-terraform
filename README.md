@@ -21,6 +21,7 @@ Deploy **Fortinet FortiProxy** - the industry-leading **Web Application Firewall
 - ✅ **Infrastructure as Code**: Version-controlled, repeatable deployments
 - ✅ **Zero-Downtime HA**: Cross-zone high availability configurations
 - ✅ **Easy Customization**: Modular design with comprehensive variable support
+- ✅ **Authentication Testing**: Complete AD integration with Ubuntu client for Kerberos/LDAP testing
 
 ## 🏗️ Architecture Support
 
@@ -31,6 +32,7 @@ Deploy **Fortinet FortiProxy** - the industry-leading **Web Application Firewall
 | **Single Instance** | Standalone FortiProxy deployment | Development, Testing, POC | Single Zone |
 | **HA Active-Passive** | High-availability cluster | Production, Critical workloads | Cross-Zone |
 | **HA with Management** | HA cluster with dedicated mgmt | Enterprise, Compliance | Cross-Zone |
+| **AD + Client Environment** | Windows AD + Ubuntu client | Authentication Testing, LDAP/Kerberos | Cross-Zone |
 
 ### ☁️ Cloud Platform Support
 
@@ -70,7 +72,7 @@ fortiproxy-terraform/
 │   ├── 7.6/
 │   │   ├── single/                    # Single instance deployment
 │   │   └── ha-ap-port1-mgmt-crosszone/ # HA cluster deployment
-│   └── win2019-ad/                    # Active Directory for testing
+│   └── win2019-ad/                    # Windows Server 2019 AD + Ubuntu client for authentication testing
 ├── aws/
 │   └── 7.0/
 │       └── ha-active-passive/         # AWS HA deployment
@@ -180,6 +182,19 @@ cd azure/7.6/single
 cd azure/7.6/ha-ap-port1-mgmt-crosszone
 cd ../win2019-ad  # Deploy AD for authentication
 # Configure LDAP/RADIUS integration
+```
+
+### 🧪 Authentication Testing
+
+**Scenario**: Testing FortiProxy LDAP/Kerberos authentication
+**Recommended**: Azure AD + Ubuntu Client Environment
+```bash
+cd azure/win2019-ad
+# Complete testing environment with:
+# - Windows Server 2019 Active Directory
+# - Ubuntu 20.04 client with Kerberos/LDAP tools
+# - Pre-configured test users and scripts
+# - Comprehensive authentication testing suite
 ```
 
 ## 🛡️ Security Best Practices
